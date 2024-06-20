@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить фильм</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .success-message {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .success-message .checkmark {
+            font-size: 100px;
+            color: green;
+            transform: scale(0);
+            transition: transform 0.6s ease-in-out;
+        }
+        .success-message .text {
+            font-size: 24px;
+            color: green;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    {% set active_page = 'add' %}
+    {% include 'header.html' %}
+    <main>
+        <form id="add-movie-form">
+            <label for="title">Название:</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="producer">Режиссер:</label>
+            <input type="text" id="producer" name="producer" required>
+
+            <label for="year">Год выпуска:</label>
+            <input type="number" id="year" name="year" required>
+
+            <label for="genre">Жанр:</label>
+            <select id="genre" name="genre_id" required>
+                {% for genre in genres %}
+                <option value="{{ genre.id }}">{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="description">Описание:</label>
+            <textarea id="description" name="description" required></textarea>
+
+            <label for="photo">Загрузить фото:</label>
+            <input type="file" id="photo" name="photo" accept="image/*" required>
+
+            <button type="button" onclick="submitForms()">Добавить фильм</button>
+        </form>
+        <div class="success-message">
+            <div class="checkmark">✓</div>
+            <div class="text">Фильм успешно добавлен!</div>
+        </div>
+    </main>
+    {% include 'footer.html' %}
+    <script>
+        async function submitForms() {
+            const form = document.getElementById('add-movie-form');
+            const formData = new FormData(form);
+            const movieData = {};
+            formData.forEach((value, key) => {
+                if (key !== 'photo') {
+                    movieData[key] = value;
+                }
+            });
+
+            const response = await fetch('/movie', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(movieData)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const movieId = data.id;
+                await uploadPhoto(movieId);
+                playSuccessAnimation();
+            } else {
+                alert('Ошибка при добавлении фильма');
+            }
+        }
+
+        async function uploadPhoto(movieId) {
+            const form = document.getElementById('add-movie-form');
+            const formData = new FormData(form);
+            const file = formData.get('photo');
+
+            const photoFormData = new FormData();
+            photoFormData.append('file', file);
+
+            const response = await fetch(`/movie/photo/${movieId}`, {
+                method: 'POST',
+                body: photoFormData
+            });
+
+            if (!response.ok) {
+                alert('Ошибка при загрузке фото');
+            }
+        }
+
+        function playSuccessAnimation() {
+            const form = document.getElementById('add-movie-form');
+            const successMessage = document.querySelector('.success-message');
+            const checkmark = successMessage.querySelector('.checkmark');
+            const text = successMessage.querySelector('.text');
+
+            form.style.display = 'none';
+            successMessage.style.display = 'block';
+
+            // Анимация увеличения
+            setTimeout(() => {
+                checkmark.style.transform = 'scale(1.35)';
+                setTimeout(() => {
+                    // Анимация уменьшения
+                    checkmark.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        // Показать текст
+                        text.style.opacity = '1';
+                        setTimeout(() => {
+                            // Редирект
+                            window.location.href = '/pages/catalog';
+                        }, 1400);
+                    }, 500);
+                }, 600);
+            }, 0);
+        }
+    </script>
+</body>
+</html>

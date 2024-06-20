@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог фильмов</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .movies-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+        }
+        .movie-card {
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            width: calc(20% - 20px); /* Для пяти карточек в ряду */
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .movie-card img {
+            width: 100%;
+            height: auto;
+            max-width: 350px;
+            border-radius: 5px;
+        }
+        .movie-card h2 {
+            margin: 10px 0;
+        }
+        @media (max-width: 1600px) {
+            .movie-card {
+                width: calc(23% - 20px); /* Для четырех карточек в ряду */
+            }
+        }
+        @media (max-width: 1200px) {
+            .movie-card {
+                width: calc(33.333% - 20px); /* Для трех карточек в ряду */
+            }
+        }
+        @media (max-width: 900px) {
+            .movie-card {
+                width: calc(50% - 20px); /* Для двух карточек в ряду */
+            }
+        }
+        @media (max-width: 600px) {
+            .movie-card {
+                width: 100%; /* Для одной карточки в ряду */
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set active_page = 'catalog' %}
+    {% include 'header.html' %}
+    <main>
+        <div class="movies-grid">
+            {% for movie in movies %}
+            <div class="movie-card" onclick="window.location.href='/pages/details/{{ movie.id }}'">
+                <img src="/images/{{ movie.pathfile }}" alt="{{ movie.title }}">
+                <h2>{{ movie.title }}</h2>
+                <p><strong>Режиссер:</strong> {{ movie.producer }}</p>
+                <p><strong>Год:</strong> {{ movie.year }}</p>
+                <p><strong>Жанр:</strong> {{ movie.genre.name }}</p>
+                <p><strong>Описание:</strong> {{ movie.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% include 'footer.html' %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ movie.title }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    {% set active_page = 'details' %}
+    {% include 'header.html' %}
+    <main>
+        <div class="movie-details">
+            <h2>{{ movie.title }}</h2>
+            <p><strong>Режиссер:</strong> {{ movie.producer }}</p>
+            <p><strong>Год:</strong> {{ movie.year }}</p>
+            <p><strong>Жанр:</strong> {{ movie.genre.name }}</p>
+            <p><strong>Описание:</strong> {{ movie.description }}</p>
+            <p><strong>Дата добавления:</strong> {{ movie.date_added }}</p>
+            <img src="/images/{{ movie.pathfile }}" alt="{{ movie.title }}">
+        </div>
+    </main>
+    {% include 'footer.html' %}
+</body>
+</html>
