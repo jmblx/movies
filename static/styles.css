@@ -107,9 +107,11 @@ main {
 
 .movie-details img {
     width: 100%;
+    max-width: 450px; /* Установлена максимальная ширина */
     height: auto;
     border-radius: 5px;
 }
+
 
 .movie-details h2 {
     margin: 10px 0;
