@@ -6,12 +6,14 @@ pipeline {
                 sh 'git clone -b main https://github.com/jmblx/movies.git'
             }
         }
+        stage('Install Docker Client') {
+            steps {
+                sh 'apt-get update && apt-get install -y docker.io'
+            }
+        }
         stage('Install Dependencies') {
             agent {
-                docker {
-                    image 'python:3.11'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
+                docker { image 'python:3.11' }
             }
             steps {
                 sh 'python -m venv venv'
