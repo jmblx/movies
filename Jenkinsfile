@@ -13,7 +13,10 @@ pipeline {
         }
         stage('Install Dependencies') {
             agent {
-                docker { image 'python:3.11' }
+                docker {
+                    image 'python:3.11'
+                    args '--tlsverify=false'
+                }
             }
             steps {
                 sh 'python -m venv venv'
