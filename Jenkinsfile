@@ -1,12 +1,9 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.11'
+            image 'docker:20.10'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
-    }
-    environment {
-        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin"
     }
     stages {
         stage('Checkout') {
@@ -21,6 +18,12 @@ pipeline {
             }
         }
         stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'python:3.11'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 sh 'python -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
