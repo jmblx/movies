@@ -1,38 +1,68 @@
 pipeline {
     agent any
+
+    environment {
+        DOCKER_IMAGE = 'movies_app_image'
+        SSH_CREDENTIALS_ID = 'your-ssh-credentials-id'
+        SSH_HOST = '31.128.42.103'
+        SSH_USER = 'root'
+        SSH_PASSWORD = 'R&gfk3OXyGeh'
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                sh 'git clone -b main https://github.com/jmblx/movies.git'
+                git 'https://github.com/jmblx/movies'
             }
         }
-        stage('Install Dependencies') {
-            agent {
-                docker { image 'python:3.11' }
-            }
-            steps {
-                sh 'python -m venv venv'
-                sh './venv/bin/pip install --upgrade pip'
-                sh './venv/bin/pip install -r requirements.txt'
-            }
-        }
-        stage('Run Tests') {
-            steps {
-                sh './venv/bin/pytest'
-            }
-        }
-        stage('Build and Deploy') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    def app = docker.build('movies-app', 'src')
-                    app.run('-d -p 8000:8000')
+                    docker.build("${env.DOCKER_IMAGE}", '.')
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    docker.image("${env.DOCKER_IMAGE}").inside {
+                        sh 'pytest'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Server') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sshagent (credentials: [env.SSH_CREDENTIALS_ID]) {
+                        sh """
+                        sshpass -p "${env.SSH_PASSWORD}" ssh ${env.SSH_USER}@${env.SSH_HOST} << EOF
+                        cd /root/movies
+                        git pull origin main
+                        docker-compose down
+                        docker-compose build
+                        docker-compose up -d
+                        EOF
+                        """
+                    }
                 }
             }
         }
     }
+
     post {
         always {
-            cleanWs()
+            script {
+                docker.image("${env.DOCKER_IMAGE}").inside {
+                    sh 'docker-compose down'
+                }
+            }
         }
     }
 }
