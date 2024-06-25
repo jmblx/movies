@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/jmblx/movies'
+                sh 'git clone -b main https://github.com/jmblx/movies.git'
             }
         }
 
