@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/jmblx/movies.git'
+                // Убедитесь, что Jenkins использует установленный Git
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/jmblx/movies']]])
             }
         }
         stage('Install Docker') {
