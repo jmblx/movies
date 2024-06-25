@@ -1,4 +1,5 @@
 # routers.py
+import os
 from typing import List
 
 from fastapi import APIRouter, Request, Depends
@@ -7,13 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from starlette.templating import Jinja2Templates
 
+from constants import templates_path
 from models import get_async_session, Movie, Genre
 from movie.schemas import MovieGet
 
 router = APIRouter(prefix="/pages")
 
-templates = Jinja2Templates(directory="templates")
-
+templates = Jinja2Templates(directory=templates_path)
 
 @router.get("/add")
 async def add_page(request: Request, session: AsyncSession = Depends(get_async_session)):
@@ -37,8 +38,11 @@ async def catalog_page(request: Request, session: AsyncSession = Depends(get_asy
 
 @router.get("/details/{movie_id}")
 async def details_page(request: Request, movie_id: int, session: AsyncSession = Depends(get_async_session)):
-    movie = await session.execute(select(Movie).where(Movie.id == movie_id).options(joinedload(Movie.genre)))
-    movie = MovieGet.model_validate(movie.scalar())
+    stmt = select(Movie).where(Movie.id == movie_id).options(joinedload(Movie.genre))
+    print([g.__dict__ for g in (await session.execute(select(Genre))).scalars()])
+    movie = (await session.execute(stmt)).scalar_one()
+    print(movie.__dict__)
+    movie = MovieGet.model_validate(movie)
     return templates.TemplateResponse(
         request=request, name="details.html", context={"movie": movie}
     )

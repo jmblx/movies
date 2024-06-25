@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base, mapped_column, Mapped, relationship
 from sqlalchemy import Integer, String, DateTime, text, ForeignKey, select
 
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+from constants import default_genres
+
+DATABASE_URL = "sqlite+aiosqlite:///./movies.db"
 
 
 engine = create_async_engine(DATABASE_URL, echo=True)
@@ -57,16 +59,6 @@ async def init_db():
         result = await session.execute(select(Genre))
         genres = result.scalars().all()
         if not genres:
-            default_genres = [
-                "Боевик",
-                "Комедия",
-                "Драма",
-                "Фэнтези",
-                "Ужасы",
-                "Детектив",
-                "Романтика",
-                "Триллер"
-            ]
             for genre_name in default_genres:
                 genre = Genre(name=genre_name)
                 session.add(genre)

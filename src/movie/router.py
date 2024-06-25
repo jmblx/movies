@@ -1,12 +1,13 @@
+import logging
 import os
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import Movie, get_async_session, async_session_maker
-from movie.schemas import MovieAdd, MovieGet
+from movie.schemas import MovieAdd
 from PIL import Image
 
 router = APIRouter(prefix="/movie")
@@ -14,6 +15,8 @@ BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(BASE_DIR)
 IMAGES_DIR = os.path.join(PARENT_DIR, "images")
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def create_upload_avatar(
     object_id,
@@ -41,12 +44,14 @@ async def create_upload_avatar(
 
 @router.post("")
 async def add_movie(movie: MovieAdd, session: AsyncSession = Depends(get_async_session)):
-    # movie = Movie(**movie.model_dump())
-    movie_id = await session.execute(insert(Movie).values(**movie.model_dump()).returning(Movie.id))
-    print(movie_id)
-    print(movie.model_dump())
-    await session.commit()
-    return {"id": movie_id.scalar()}
+        # movie = Movie(**movie.model_dump())
+    try:
+        movie_id = await session.execute(insert(Movie).values(**movie.model_dump()).returning(Movie.id))
+        await session.commit()
+        return {"id": movie_id.scalar()}
+    except Exception as e:
+        logger.error(f"Error occurred while creating movie: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 # @router.get("/{movie_id}", response_model=MovieGet)
