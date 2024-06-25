@@ -1,17 +1,8 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:19.03'
-            args '--privileged'
-        }
-    }
+    agent any
 
     environment {
-        DOCKER_IMAGE = 'movies_app_image'
-        SSH_CREDENTIALS_ID = 'your-ssh-credentials-id'
-        SSH_HOST = '31.128.42.103'
-        SSH_USER = 'root'
-        SSH_PASSWORD = 'R&gfk3OXyGeh'
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
     }
 
     stages {
@@ -24,7 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    dockerImage = docker.build("movies-app:${env.BUILD_ID}")
                 }
             }
         }
@@ -32,26 +23,24 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh 'docker run --rm ${DOCKER_IMAGE} pytest'
+                    dockerImage.inside {
+                        sh 'pytest'
+                    }
                 }
             }
         }
 
         stage('Deploy to Server') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
-                    sshagent (credentials: [env.SSH_CREDENTIALS_ID]) {
+                    docker.withRegistry('', 'DOCKER_HUB_CREDENTIALS') {
+                        dockerImage.push("${env.BUILD_ID}")
+                        dockerImage.push("latest")
+                    }
+
+                    sshagent(credentials: ['server-credentials']) {
                         sh """
-                        sshpass -p "${env.SSH_PASSWORD}" ssh ${env.SSH_USER}@${env.SSH_HOST} << EOF
-                        cd /root/movies
-                        git pull origin main
-                        docker-compose down
-                        docker-compose build
-                        docker-compose up -d
-                        EOF
+                        ssh root@31.128.42.103 'docker pull movies-app:latest && docker run -d -p 8000:8000 movies-app:latest'
                         """
                     }
                 }
@@ -61,9 +50,7 @@ pipeline {
 
     post {
         always {
-            script {
-                sh 'docker-compose down'
-            }
+            cleanWs()
         }
     }
 }
