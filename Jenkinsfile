@@ -1,53 +1,35 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/jmblx/movies'
+                sh 'git clone -b main https://github.com/jmblx/movies.git'
             }
         }
-
-        stage('Build Docker Image') {
+        stage('Install Dependencies') {
+            agent {
+                docker { image 'python:3.11' }
+            }
             steps {
-                script {
-                    dockerImage = docker.build("movies-app:${env.BUILD_ID}")
-                }
+                sh 'python -m venv venv'
+                sh './venv/bin/pip install --upgrade pip'
+                sh './venv/bin/pip install -r requirements.txt'
             }
         }
-
         stage('Run Tests') {
             steps {
-                script {
-                    dockerImage.inside {
-                        sh 'pytest'
-                    }
-                }
+                sh './venv/bin/pytest'
             }
         }
-
-        stage('Deploy to Server') {
+        stage('Build and Deploy') {
             steps {
                 script {
-                    docker.withRegistry('', 'DOCKER_HUB_CREDENTIALS') {
-                        dockerImage.push("${env.BUILD_ID}")
-                        dockerImage.push("latest")
-                    }
-
-                    sshagent(credentials: ['server-credentials']) {
-                        sh """
-                        ssh root@31.128.42.103 'docker pull movies-app:latest && docker run -d -p 8000:8000 movies-app:latest'
-                        """
-                    }
+                    def app = docker.build('movies-app', 'src')
+                    app.run('-d -p 8000:8000')
                 }
             }
         }
     }
-
     post {
         always {
             cleanWs()
