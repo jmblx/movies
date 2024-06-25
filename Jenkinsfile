@@ -1,40 +1,72 @@
 pipeline {
-    agent {
-        docker { image 'python:3.11' }
-    }
+    agent any
+
     environment {
         PIP_CACHE_DIR = "${WORKSPACE}/.pip"
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git 'https://github.com/jmblx/movies.git'
             }
         }
+        stage('Install Docker') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'docker --version'
+                    } else {
+                        bat 'docker --version'
+                    }
+                }
+            }
+        }
         stage('Install Dependencies') {
             steps {
-                sh 'python -m venv venv'
-                sh './venv/bin/pip install --upgrade pip'
-                sh './venv/bin/pip install -r requirements.txt'
+                script {
+                    if (isUnix()) {
+                        sh 'python -m venv venv'
+                        sh './venv/bin/pip install --upgrade pip'
+                        sh './venv/bin/pip install -r requirements.txt'
+                    } else {
+                        bat 'python -m venv venv'
+                        bat '.\\venv\\Scripts\\pip install --upgrade pip'
+                        bat '.\\venv\\Scripts\\pip install -r requirements.txt'
+                    }
+                }
             }
         }
         stage('Run Tests') {
             steps {
-                sh './venv/bin/pytest'
+                script {
+                    if (isUnix()) {
+                        sh './venv/bin/pytest'
+                    } else {
+                        bat '.\\venv\\Scripts\\pytest'
+                    }
+                }
             }
         }
         stage('Build and Deploy') {
             steps {
                 script {
-                    def app = docker.build('movies-app', 'src')
-                    app.run('-d -p 8000:8000')
+                    if (isUnix()) {
+                        sh 'docker build -t movies-app src'
+                        sh 'docker run -d -p 8000:8000 movies-app'
+                    } else {
+                        bat 'docker build -t movies-app src'
+                        bat 'docker run -d -p 8000:8000 movies-app'
+                    }
                 }
             }
         }
     }
     post {
         always {
-            cleanWs()
+            script {
+                cleanWs()
+            }
         }
     }
 }
