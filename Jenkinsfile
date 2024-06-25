@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        docker { image 'python:3.9' }
+        docker { image 'python:3.11' }
     }
     environment {
         PIP_CACHE_DIR = "${WORKSPACE}/.pip"
