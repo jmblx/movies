@@ -24,7 +24,7 @@ pipeline {
         stage('Build and Deploy') {
             steps {
                 script {
-                    def app = docker.build('movies-app', 'src')
+                    def app = docker.build('movies-app', '.')
                     app.run('-d -p 8000:8000')
                 }
             }
