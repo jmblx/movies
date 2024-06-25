@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:19.03'
+            args '--privileged'
+        }
+    }
 
     environment {
         DOCKER_IMAGE = 'movies_app_image'
@@ -12,14 +17,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh 'git clone -b main https://github.com/jmblx/movies.git'
+                git 'https://github.com/jmblx/movies'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${env.DOCKER_IMAGE}", '.')
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
@@ -27,9 +32,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    docker.image("${env.DOCKER_IMAGE}").inside {
-                        sh 'pytest'
-                    }
+                    sh 'docker run --rm ${DOCKER_IMAGE} pytest'
                 }
             }
         }
@@ -59,9 +62,7 @@ pipeline {
     post {
         always {
             script {
-                docker.image("${env.DOCKER_IMAGE}").inside {
-                    sh 'docker-compose down'
-                }
+                sh 'docker-compose down'
             }
         }
     }
