@@ -6,16 +6,10 @@ pipeline {
                 sh 'git clone -b main https://github.com/jmblx/movies.git'
             }
         }
-        stage('Install Docker Client') {
-            steps {
-                sh 'apt-get update && apt-get install -y docker.io'
-            }
-        }
         stage('Install Dependencies') {
             agent {
                 docker {
                     image 'python:3.11'
-                    args '--tlsverify=false'
                 }
             }
             steps {
@@ -31,10 +25,8 @@ pipeline {
         }
         stage('Build and Deploy') {
             steps {
-                script {
-                    def app = docker.build('movies-app', '.')
-                    app.run('-d -p 8000:8000')
-                }
+                sh 'docker build -t movies-app .'
+                sh 'docker run -d -p 8000:8000 movies-app'
             }
         }
     }
