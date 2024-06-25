@@ -5,10 +5,19 @@ pipeline {
             args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
+    environment {
+        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin"
+    }
     stages {
         stage('Checkout') {
             steps {
                 sh 'git clone -b main https://github.com/jmblx/movies.git'
+            }
+        }
+        stage('Check Docker Path') {
+            steps {
+                sh 'which docker'
+                sh 'docker --version'
             }
         }
         stage('Install Dependencies') {
@@ -25,10 +34,8 @@ pipeline {
         }
         stage('Build and Deploy') {
             steps {
-                script {
-                    def app = docker.build('movies-app', '.')
-                    app.run('-d -p 8000:8000')
-                }
+                sh 'docker build -t movies-app .'
+                sh 'docker run -d -p 8000:8000 movies-app'
             }
         }
     }
