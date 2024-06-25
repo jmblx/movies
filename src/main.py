@@ -9,7 +9,6 @@ from pages.router import router as router_pages
 from models import init_db
 
 
-
 #
 # @app.on_event("startup")
 # async def on_startup():

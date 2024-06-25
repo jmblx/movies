@@ -8,7 +8,7 @@ from sqlalchemy import Integer, String, DateTime, text, ForeignKey, select
 
 from constants import default_genres
 
-DATABASE_URL = "sqlite+aiosqlite:///./movies.db"
+DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 
 engine = create_async_engine(DATABASE_URL, echo=True)
