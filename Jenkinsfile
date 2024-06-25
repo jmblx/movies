@@ -8,7 +8,7 @@ pipeline {
         }
         stage('Install Docker Client') {
             steps {
-                sh 'apt-get update && apt-get install -y docker.io'
+                sh 'sudo apt-get update && apt-get install -y docker.io'
             }
         }
         stage('Install Dependencies') {
