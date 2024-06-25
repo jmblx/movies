@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -7,9 +12,6 @@ pipeline {
             }
         }
         stage('Install Dependencies') {
-            agent {
-                docker { image 'python:3.11' }
-            }
             steps {
                 sh 'python -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
