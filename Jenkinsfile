@@ -1,19 +1,14 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.11'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
     stages {
         stage('Checkout') {
             steps {
-                sh 'git clone -b main https://github.com/jmblx/movies.git'
+                git branch: 'main', url: 'https://github.com/jmblx/movies.git'
             }
         }
         stage('Install Dependencies') {
             steps {
-                sh 'python -m venv venv'
+                sh 'python3 -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
                 sh './venv/bin/pip install -r requirements.txt'
             }
@@ -27,7 +22,7 @@ pipeline {
             steps {
                 script {
                     sh 'docker build -t "app" .'
-                    sh 'docker run "app"'
+                    sh 'docker run -d "app"'
                 }
             }
         }
