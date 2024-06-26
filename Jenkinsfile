@@ -29,20 +29,13 @@ pipeline {
                     sh '''
                         set -e
                         echo "Connecting to remote server"
-                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 << "ENDSSH"
+                        scp -o StrictHostKeyChecking=no deploy.sh root@31.128.42.103:/root/movies/
+                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 << 'EOF'
                             set -e
-                            echo "Connected to remote server"
-                            cd movies
-                            echo "Pulled latest code"
-                            git pull
-                            echo "Removing all Docker containers"
-                            docker rm -f $(docker ps -aq) || true
-                            echo "Building Docker image"
-                            docker build -t app .
-                            echo "Running Docker container"
-                            docker run -d --init -p 8000:8000 app
-                            echo "Deployment completed"
-                        ENDSSH
+                            cd /root/movies
+                            chmod +x deploy.sh
+                            ./deploy.sh
+                        EOF
                     '''
                 }
             }
