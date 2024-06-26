@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.11'
-            args '-u root' // Чтобы иметь root права для установки пакетов
+            args '-u root'
         }
     }
     stages {
@@ -23,11 +23,17 @@ pipeline {
                 sh './venv/bin/pytest'
             }
         }
-        stage('Build and Deploy') {
+        stage('Deploy to Remote Server') {
             steps {
-                script {
-                    sh 'docker build -t "app" .'
-                    sh 'docker run -d "app"'
+                sshagent (credentials: ['ssh-credentials-id']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 <<EOF
+                        cd movies
+                        git pull
+                        docker build -t app .
+                        docker run -d app
+                        EOF
+                    '''
                 }
             }
         }
