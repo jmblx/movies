@@ -1,19 +1,19 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11'
+            args '-u root' // Чтобы иметь root права для установки пакетов
+        }
+    }
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/jmblx/movies.git'
             }
         }
-        stage('Install Python') {
-            steps {
-                sh 'apt-get update && apt-get install -y python3.11 python3.11-venv'
-            }
-        }
         stage('Install Dependencies') {
             steps {
-                sh 'python3.11 -m venv venv'
+                sh 'python -m venv venv'
                 sh './venv/bin/pip install --upgrade pip'
                 sh './venv/bin/pip install -r requirements.txt'
             }
