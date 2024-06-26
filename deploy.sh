@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 echo "Connected to remote server"
-cd movies
 echo "Pulled latest code"
 git pull
 echo "Removing all Docker containers"
