@@ -24,19 +24,31 @@ pipeline {
             }
         }
         stage('Deploy to Remote Server') {
+            environment {
+                REMOTE_USER = 'root'
+                REMOTE_HOST = '31.128.42.103'
+                REMOTE_PASS = credentials('your-credentials-id') // заменить на ваш credentials ID
+            }
             steps {
-                withCredentials([usernameColonPassword(credentialsId: 'asdfbjkln', variable: 'SSH_CRED')]) {
-                    sh '''
-                        set -x
-                        sshpass -p ${SSH_CRED#*:} ssh -o StrictHostKeyChecking=no ${SSH_CRED%%:*}@31.128.42.103 <<EOF
+                script {
+                    def remoteCommand = '''
                         set -e
-                        set -x
-                        cd movies || exit 1
-                        git pull || exit 1
-                        docker build -t app . || exit 1
-                        docker run -d -p 8000:8000 app || exit 1
-                        EOF
+                        echo "Connected to remote server"
+                        cd movies || { echo "Directory not found"; exit 1; }
+                        echo "Pulling latest code"
+                        git pull || { echo "Git pull failed"; exit 1; }
+                        echo "Building Docker image"
+                        docker build -t app . || { echo "Docker build failed"; exit 1; }
+                        echo "Running Docker container"
+                        docker run -d -p 8000:8000 app || { echo "Docker run failed"; exit 1; }
+                        echo "Deployment completed"
                     '''
+
+                    sh """
+                        sshpass -p ${REMOTE_PASS} ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} <<EOF
+                        ${remoteCommand}
+                        EOF
+                    """
                 }
             }
         }
