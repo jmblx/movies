@@ -28,7 +28,7 @@ pipeline {
         }
         stage('Remote Deploy') {
             steps {
-                sshagent(credentials: ['remote-server']) {
+                sshagent(credentials: ['ssh-connection']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@31.128.42.103 '
                             cd movies && \
