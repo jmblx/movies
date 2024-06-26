@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 echo "Connected to remote server"
+git reset --hard HEAD
 echo "Pulled latest code"
 git pull
 echo "Removing all Docker containers"
