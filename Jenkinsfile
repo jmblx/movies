@@ -29,7 +29,7 @@ pipeline {
                     sh '''
                         set -e
                         echo "Connecting to remote server"
-                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 << 'ENDSSH'
+                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 << "ENDSSH"
                             set -e
                             echo "Connected to remote server"
                             cd movies
