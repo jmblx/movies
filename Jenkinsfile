@@ -20,7 +20,7 @@ pipeline {
         }
         stage('Deploy to Remote Server') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'ssh-credentials-id', passwordVariable: 'SSH_PASSWORD', usernameVariable: 'SSH_USERNAME')]) {
+                withCredentials([usernamePassword(credentialsId: 'asdfbjkln', passwordVariable: 'SSH_PASSWORD', usernameVariable: 'SSH_USERNAME')]) {
                     sh '''
                         set -x
                         sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@31.128.42.103 <<EOF
