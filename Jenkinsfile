@@ -25,13 +25,21 @@ pipeline {
         }
         stage('Deploy to Remote Server') {
             steps {
-                sshagent (credentials: ['ssh-credentials-id']) {
+                sshagent(credentials: ['ssh-credentials-id']) {
                     sh '''
+                        set -e
+                        echo "Connecting to remote server"
                         ssh -o StrictHostKeyChecking=no root@31.128.42.103 <<EOF
+                        set -e
+                        echo "Connected to remote server"
                         cd movies
+                        echo "Pulled latest code"
                         git pull
+                        echo "Building Docker image"
                         docker build -t app .
+                        echo "Running Docker container"
                         docker run -d -p 8000:8000 app
+                        echo "Deployment completed"
                         EOF
                     '''
                 }
