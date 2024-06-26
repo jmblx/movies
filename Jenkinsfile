@@ -33,7 +33,7 @@ pipeline {
                 ], command: '''
                     set -e
                     set -x
-                    cd /path/to/movies
+                    cd movies
                     git pull
                     docker build -t app .
                     docker run -d -p 8000:8000 app
