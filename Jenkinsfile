@@ -25,19 +25,24 @@ pipeline {
         }
         stage('Deploy to Remote Server') {
             steps {
-                sshCommand remote: [
-                    user: 'root',
-                    host: '31.128.42.103',
-                    password: 'R&gfk3OXyGeh',
-                    allowAnyHosts: true
-                ], command: '''
-                    set -e
-                    set -x
-                    cd movies
-                    git pull
-                    docker build -t app .
-                    docker run -d -p 8000:8000 app
-                '''
+                sshagent(credentials: ['ssh-credentials-id']) {
+                    sh '''
+                        set -e
+                        echo "Connecting to remote server"
+                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 <<EOF
+                        set -e
+                        echo "Connected to remote server"
+                        cd movies
+                        echo "Pulled latest code"
+                        git pull
+                        echo "Building Docker image"
+                        docker build -t app .
+                        echo "Running Docker container"
+                        docker run -d -p 8000:8000 app
+                        echo "Deployment completed"
+                        EOF
+                    '''
+                }
             }
         }
     }
