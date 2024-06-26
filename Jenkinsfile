@@ -22,7 +22,21 @@ pipeline {
             steps {
                 script {
                     sh 'docker build -t "app" .'
-                    sh 'docker run -d "app"'
+                    sh 'docker run -d -p 8000:8000 --name app-container "app"'
+                }
+            }
+        }
+        stage('Remote Deploy') {
+            steps {
+                sshagent(credentials: ['remote-server']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 '
+                            cd /path/to/movies && \
+                            git pull && \
+                            docker build -t "app" . && \
+                            docker run -d -p 8000:8000 --rm --name app-container "app"
+                        '
+                    """
                 }
             }
         }
