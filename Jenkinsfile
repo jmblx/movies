@@ -6,6 +6,11 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/jmblx/movies.git'
             }
         }
+        stage('Install Python') {
+            steps {
+                sh 'apt-get update && apt-get install -y python3.11 python3.11-venv'
+            }
+        }
         stage('Install Dependencies') {
             steps {
                 sh 'python3.11 -m venv venv'
@@ -18,25 +23,11 @@ pipeline {
                 sh './venv/bin/pytest'
             }
         }
-        stage('Build and Deploy Locally') {
+        stage('Build and Deploy') {
             steps {
                 script {
                     sh 'docker build -t "app" .'
-                    sh 'docker run -d -p 8000:8000 --name app-container "app"'
-                }
-            }
-        }
-        stage('Remote Deploy') {
-            steps {
-                sshagent(credentials: ['remote-server']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no root@31.128.42.103 '
-                            cd /path/to/movies && \
-                            git pull && \
-                            docker build -t "app" . && \
-                            docker run -d -p 8000:8000 --rm --name app-container "app"
-                        '
-                    """
+                    sh 'docker run -d "app"'
                 }
             }
         }
